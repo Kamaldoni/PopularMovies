@@ -35,6 +35,7 @@ import java.util.List;
 
 import movies.popular.android.com.popularmovies.Modul.Movie;
 import movies.popular.android.com.popularmovies.Util.GridMoviesAdapter;
+import movies.popular.android.com.popularmovies.Util.NetworkUtils;
 import movies.popular.android.com.popularmovies.Util.Utils;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -47,7 +48,7 @@ import static movies.popular.android.com.popularmovies.Util.Utils.API_KEY;
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<List<Movie>> {
     private static final String EXTRA_MOVIE_QUERY_URL = "query_url";
     private GridView gridView;
-    static int current_page = 1;
+    public static int current_page = 1;
     public static List<Movie> pop_movies = new ArrayList<>();
     public static List<Movie> high_ranked_movies = new ArrayList<>();
     final static String POPULAR = "popular";
@@ -90,7 +91,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
         errorMessage = (TextView) findViewById(R.id.error_message);
 
-        getFirstPage(sorting);
+        getFirstPage();
 
         // I have looked this method from stackoverflow
         gridView.setOnScrollListener(new AbsListView.OnScrollListener() {
@@ -103,7 +104,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
                 int lastInScreen = firstVisibleItem + visibleItemCount;
                 if (lastInScreen == totalItemCount) {
-                    requestForMovies(sorting);
+                    requestForMovies();
                     //gridView.setSelection(gridView.getLastVisiblePosition());
                 }
             }
@@ -133,34 +134,20 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
 
     //this method gets the first page from API
-    private void getFirstPage(String sort) {
+    private void getFirstPage() {
         if (internet_connection())
         {
             high_ranked_movies.clear();
             pop_movies.clear();
             current_page = 1;
 
-            String http = "https://api.themoviedb.org/3/movie/" + sort +
-                    "?page=1&language=en-US&api_key=" + API_KEY;
-
-            Bundle bundle = new Bundle();
-            bundle.putString(EXTRA_MOVIE_QUERY_URL, http);
-
             LoaderManager manager = getSupportLoaderManager();
             Loader<List<Movie>> loader = manager.getLoader(MOVIE_LOADER_ID);
             if(loader == null){
-                manager.initLoader(MOVIE_LOADER_ID, bundle, this);
+                manager.initLoader(MOVIE_LOADER_ID, null, this);
             }else{
-                manager.restartLoader(MOVIE_LOADER_ID, bundle, this);
+                manager.restartLoader(MOVIE_LOADER_ID, null, this);
             }
-
-                    /*if (sorting == POPULAR)
-                        new LoadingFirstPage(pop_movies).execute(url);
-                    else if (sorting == TOP_RATED)
-                        new LoadingFirstPage(high_ranked_movies).execute(url);
-        */
-
-
         }
         else{
             //create a snackbar telling the user there is no internet connection and issuing a chance to reconnect
@@ -184,20 +171,20 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         {
             current_page = 1;
             sorting = POPULAR;
-            getFirstPage(sorting);
+            getFirstPage();
             return  true;
 
         }else if (id == R.id.main_rating)
         {
             sorting = TOP_RATED;
             current_page = 1;
-            getFirstPage(sorting);
+            getFirstPage();
             return  true;
         }
         else if (id== R.id.refresh)
         {
             current_page = 1;
-            getFirstPage(sorting);
+            getFirstPage();
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -205,25 +192,17 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
 
     // this method is used to load more posters from API when the gridView scrolls to the end of the current movie list
-    private void requestForMovies(String sortType) {
+    private void requestForMovies() {
         if (internet_connection())
         {
             current_page += 1;
-
-            String http = "https://api.themoviedb.org/3/movie/" + sortType + "?page=" + Integer.toString(current_page) +
-                    "&language=en-US&api_key=" + API_KEY;
-
-            Bundle bundle = new Bundle();
-            bundle.putString(EXTRA_MOVIE_QUERY_URL, http);
-
             LoaderManager manager = getSupportLoaderManager();
             Loader<List<Movie>> loader = manager.getLoader(MOVIE_LOADER_ID);
             if(loader == null){
-                manager.initLoader(MOVIE_LOADER_ID, bundle, this);
-                //gridView.setSelection(gridView.getCount()-1);
-            }else{
-                manager.restartLoader(MOVIE_LOADER_ID, bundle, this);
-                //gridView.setSelection(gridView.getCount()-1);
+                manager.initLoader(MOVIE_LOADER_ID, null, this);
+
+                            }else{
+                manager.restartLoader(MOVIE_LOADER_ID, null, this);
             }
         }
         else{
@@ -246,8 +225,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             @Override
             protected void onStartLoading() {
                 super.onStartLoading();
-                if (args == null)
-                    return;
+
                 if(movieList != null)
                     deliverResult(movieList);
                 else{
@@ -268,62 +246,16 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
                 movieList = new ArrayList<>();
 
-                String stringUrl = args.getString(EXTRA_MOVIE_QUERY_URL);
-
-                if (stringUrl==null || stringUrl.equals(""))
-                    return null;
-
                 URL url = null;
                 try {
-                    url = new URL(stringUrl);
+                    url = NetworkUtils.buildUrl(sorting);
                 } catch (MalformedURLException e) {
                     e.printStackTrace();
                 }
 
-
-                OkHttpClient client = new OkHttpClient();
-
-                MediaType mediaType = MediaType.parse("application/octet-stream");
-                RequestBody body = RequestBody.create(mediaType, "{}");
-                Request request = new Request.Builder()
-                        .url(url)
-                        .get()
-                        .build();
-
-                Response response = null;
-                JSONObject json = null;
-                JSONArray movies = null;
-
-                try {
-                    response = client.newCall(request).execute();
-                    json = new JSONObject(response.body().string());
-                    movies = json.getJSONArray("results");
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                NetworkUtils.getResponseFromHttpUrl(movieList, url);
 
 
-                for (int i = 0; i < movies.length(); i++) {
-
-                    Movie movie = new Movie();
-                    JSONObject movieJson = null;
-                    try {
-                        movieJson = movies.getJSONObject(i);
-                        movie.setPoster_path(movieJson.getString(Utils.MOVIE_POSTER));
-                        movie.setBackdrop(movieJson.getString(Utils.BACKGROUND_PATH));
-                        movie.setOriginal_title(movieJson.getString(Utils.ORIGINAL_TITLE));
-                        movie.setOverview(movieJson.getString(Utils.OVERVIEW));
-                        movie.setRelease_date(movieJson.getString(Utils.RELEASE_DATE));
-                        movie.setVote_average(movieJson.getDouble(Utils.VOTE_AVER));
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-
-                    movieList.add(movie);
-
-                }
                 return movieList;
             }
         };
@@ -353,6 +285,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
         gridView.setAdapter(new GridMoviesAdapter(getApplicationContext(), movies ));
 
+        gridView.setSelection(gridView.getFirstVisiblePosition());
 
         final List<Movie> finalMovies = movies;
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
