@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Popular Movies</string>
+    <string name="title_activity_movie_details">MovieDetails</string>
+    <string name="sort_by_popularity">sort by popularity</string>
+    <string name="sort_by_rating">sort by rating</string>
+    <string name="error_message">Error:\nNo internet connection.\nTry again.</string>
+    <string name="try_again">Try Again</string>
+    <string name="refresh">refresh</string>
+</resources>

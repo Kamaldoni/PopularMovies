@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item android:title="@string/sort_by_popularity"
+        app:showAsAction="never"
+        android:orderInCategory="1"
+        android:id="@+id/main_popular">
+
+    </item>
+
+    <item
+        android:title="@string/sort_by_rating"
+        app:showAsAction="never"
+        android:orderInCategory="2"
+        android:id="@+id/main_rating">
+    </item>
+
+    <item
+        android:title="@string/refresh"
+        app:showAsAction="always"
+        android:orderInCategory="1"
+        android:id="@+id/refresh"
+        android:icon="@android:drawable/ic_menu_rotate"
+        >
+
+    </item>
+
+</menu>
