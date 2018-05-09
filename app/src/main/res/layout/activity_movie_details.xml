@@ -73,6 +73,14 @@
                 android:layout_alignParentLeft="true"
                 />
 
+            <Button
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@android:drawable/btn_star_big_off"
+                android:padding="5dp"
+                android:onClick="addToFavouriteMovies"
+                />
+
 
             <TextView
                 android:id="@+id/original_title"

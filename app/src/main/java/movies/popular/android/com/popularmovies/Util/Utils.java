@@ -12,10 +12,9 @@ public class Utils {
 
     public final static String TITLE = "title";
 
-    public final static String BACKGROUND_PATH = "backdrop_path";
+    public final static String ID = "id";
     public final static String MOVIE_POSTER= "poster_path";
     public final static String OVERVIEW= "overview";
-    public final static String ORIGINAL_TITLE = "original_title";
     public final static String VOTE_AVER = "vote_average";
     public final static String RELEASE_DATE = "release_date";
     public final static String API_KEY = BuildConfig.API_KEY;

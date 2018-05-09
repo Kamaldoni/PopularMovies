@@ -88,9 +88,10 @@ public class NetworkUtils {
             try {
                 movieJson = movies.getJSONObject(i);
                 movie.setPoster_path(movieJson.getString(Utils.MOVIE_POSTER));
-                movie.setOriginal_title(movieJson.getString(Utils.ORIGINAL_TITLE));
+                movie.setTitle(movieJson.getString(Utils.TITLE));
                 movie.setOverview(movieJson.getString(Utils.OVERVIEW));
                 movie.setRelease_date(movieJson.getString(Utils.RELEASE_DATE));
+                movie.setId(movieJson.getInt(Utils.ID));
                 movie.setVote_average(movieJson.getDouble(Utils.VOTE_AVER));
             } catch (JSONException e) {
                 e.printStackTrace();

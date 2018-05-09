@@ -46,7 +46,7 @@ import okhttp3.Response;
 import static movies.popular.android.com.popularmovies.Util.Utils.API_KEY;
 
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<List<Movie>> {
-    private static final String EXTRA_MOVIE_QUERY_URL = "query_url";
+
     private GridView gridView;
     public static int current_page = 1;
     public static List<Movie> pop_movies = new ArrayList<>();
@@ -80,16 +80,16 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         setContentView(R.layout.activity_main);
 
 
-        gridView = (GridView) findViewById(R.id.gridview);
+        gridView = findViewById(R.id.gridview);
         //appears when loading first page from API, to let the user that action is on.
-        loadingIndicator = (ProgressBar) findViewById(R.id.loadingIndicator);
+        loadingIndicator = findViewById(R.id.loadingIndicator);
 
         Parcelable state = gridView.onSaveInstanceState();
         gridView.setNumColumns(2);
 
         getSupportLoaderManager().initLoader(MOVIE_LOADER_ID, null, this);
 
-        errorMessage = (TextView) findViewById(R.id.error_message);
+        errorMessage = findViewById(R.id.error_message);
 
         getFirstPage();
 
@@ -186,6 +186,10 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             current_page = 1;
             getFirstPage();
             return true;
+        }else if(id == R.id.fav_menu){
+
+            Intent intent= new Intent(this, FavouriteMoviesActivity.class);
+            startActivity(intent);
         }
         return super.onOptionsItemSelected(item);
     }
@@ -292,11 +296,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent intent = new Intent(MainActivity.this, MovieDetails.class);
-                /*intent.putExtra(Utils.VOTE_AVER, finalMovies.get(position).getVote_average());
-                intent.putExtra(Utils.ORIGINAL_TITLE, finalMovies.get(position).getOriginal_title());
-                intent.putExtra(Utils.RELEASE_DATE, finalMovies.get(position).getRelease_date());
-                intent.putExtra(Utils.MOVIE_POSTER, finalMovies.get(position).getPoster_path());
-                intent.putExtra(Utils.OVERVIEW, finalMovies.get(position).getOverview());*/
                 intent.putExtra("movie", finalMovies.get(position));
                 startActivity(intent);
 

@@ -78,7 +78,7 @@ public class Movie implements Parcelable{
         return id;
     }
 
-    public void setBackdrop(int id) {
+    public void setId(int id) {
         this.id = id;
     }
 
@@ -98,13 +98,6 @@ public class Movie implements Parcelable{
         this.overview = overview;
     }
 
-    public String getOriginal_title() {
-        return original_title;
-    }
-
-    public void setOriginal_title(String original_title) {
-        this.original_title = original_title;
-    }
 
     public double getVote_average() {
         return vote_average;
