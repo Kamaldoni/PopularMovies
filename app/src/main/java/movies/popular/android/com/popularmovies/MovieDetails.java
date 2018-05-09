@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import movies.popular.android.com.popularmovies.Modul.Movie;
 import movies.popular.android.com.popularmovies.Util.Utils;
 
 
@@ -28,7 +29,6 @@ public class MovieDetails extends AppCompatActivity {
     private TextView release_date;
     private TextView aver_vote;
     private ImageView poster;
-    private ImageView backdrop;
     private TextView originalTitle;
 
     @Override
@@ -41,30 +41,26 @@ public class MovieDetails extends AppCompatActivity {
         aver_vote = (TextView) findViewById(R.id.averageRating);
         originalTitle = (TextView) findViewById(R.id.original_title);
 
-        Intent movie = getIntent();
-
-        String pstr = movie.getStringExtra(Utils.MOVIE_POSTER);
-        String bcr = movie.getStringExtra(Utils.BACKGROUND_PATH);
-
-        handlingImages(pstr, bcr);
+        Movie movie =  getIntent().getParcelableExtra("movie");
 
 
-        overview.setText(movie.getStringExtra(Utils.OVERVIEW));
-        String releaseDate = "Release date: " + movie.getStringExtra(Utils.RELEASE_DATE);
+        String pstr = movie.getPoster_path();
+        String releaseDate = "Release date: " + movie.getRelease_date();
+        String rating = "TMDB: " + String.valueOf(movie.getVote_average());
+
+
+        overview.setText(movie.getOverview());
         release_date.setText(releaseDate);
-        String rating = "TMDB: " + String.valueOf(movie.getDoubleExtra(Utils.VOTE_AVER, 0.0));
         aver_vote.setText(rating);
-        originalTitle.setText(movie.getStringExtra(Utils.ORIGINAL_TITLE));
+        originalTitle.setText(movie.getOriginal_title());
+        handlingImages(pstr);
 
     }
 
-    private void handlingImages(String posterString, String backdropString) {
-        poster = (ImageView) findViewById(R.id.poster);
-        backdrop = (ImageView) findViewById(R.id.backdrop);
+    private void handlingImages(String posterString) {
+        poster = findViewById(R.id.poster);
         final String url1 = Utils.BASE_URL + "w342/" + posterString;
         Picasso.get().load(url1).into(poster);
-        final String url2  = Utils.BASE_URL + "w780/" + backdropString;
-        Picasso.get().load(url2).into(backdrop);
     }
 
 

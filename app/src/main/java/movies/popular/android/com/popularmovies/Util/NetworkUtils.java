@@ -9,7 +9,6 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
 
 import movies.popular.android.com.popularmovies.Modul.Movie;
@@ -24,7 +23,7 @@ import static movies.popular.android.com.popularmovies.Util.Utils.API_KEY;
 
 public class NetworkUtils {
 
-    final static String BASE_URL = "https://api.themoviedb.org/3/movie/";
+    final static String AUTHORITY = "api.themoviedb.org";
 
     final static String LANGUAGE  = "language";
 
@@ -40,7 +39,7 @@ public class NetworkUtils {
         Uri.Builder builder = new Uri.Builder();
 
         builder.scheme("http")
-                .authority("api.themoviedb.org")
+                .authority(AUTHORITY)
                 .appendPath("3")
                 .appendPath("movie")
                 .appendPath(sortType)
@@ -89,7 +88,6 @@ public class NetworkUtils {
             try {
                 movieJson = movies.getJSONObject(i);
                 movie.setPoster_path(movieJson.getString(Utils.MOVIE_POSTER));
-                movie.setBackdrop(movieJson.getString(Utils.BACKGROUND_PATH));
                 movie.setOriginal_title(movieJson.getString(Utils.ORIGINAL_TITLE));
                 movie.setOverview(movieJson.getString(Utils.OVERVIEW));
                 movie.setRelease_date(movieJson.getString(Utils.RELEASE_DATE));
@@ -97,12 +95,11 @@ public class NetworkUtils {
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-
             movieList.add(movie);
+
         }
 
     }
-
 
 
 }

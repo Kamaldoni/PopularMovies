@@ -292,12 +292,12 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent intent = new Intent(MainActivity.this, MovieDetails.class);
-                intent.putExtra(Utils.VOTE_AVER, finalMovies.get(position).getVote_average());
+                /*intent.putExtra(Utils.VOTE_AVER, finalMovies.get(position).getVote_average());
                 intent.putExtra(Utils.ORIGINAL_TITLE, finalMovies.get(position).getOriginal_title());
                 intent.putExtra(Utils.RELEASE_DATE, finalMovies.get(position).getRelease_date());
                 intent.putExtra(Utils.MOVIE_POSTER, finalMovies.get(position).getPoster_path());
-                intent.putExtra(Utils.OVERVIEW, finalMovies.get(position).getOverview());
-                intent.putExtra(Utils.BACKGROUND_PATH, finalMovies.get(position).getBackdrop());
+                intent.putExtra(Utils.OVERVIEW, finalMovies.get(position).getOverview());*/
+                intent.putExtra("movie", finalMovies.get(position));
                 startActivity(intent);
 
             }
