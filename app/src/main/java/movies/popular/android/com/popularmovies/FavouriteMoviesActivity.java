@@ -1,8 +1,10 @@
 package movies.popular.android.com.popularmovies;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -22,6 +24,7 @@ import movies.popular.android.com.popularmovies.Util.GridMoviesAdapter;
 import static movies.popular.android.com.popularmovies.Data.MovieContract.MovieDbEntry.COLUMN_AVERAGE_VOTE;
 import static movies.popular.android.com.popularmovies.Data.MovieContract.MovieDbEntry.COLUMN_ID;
 import static movies.popular.android.com.popularmovies.Data.MovieContract.MovieDbEntry.COLUMN_OVERVIEW;
+import static movies.popular.android.com.popularmovies.Data.MovieContract.MovieDbEntry.COLUMN_POSTER;
 import static movies.popular.android.com.popularmovies.Data.MovieContract.MovieDbEntry.COLUMN_RELEASE_DATE;
 import static movies.popular.android.com.popularmovies.Data.MovieContract.MovieDbEntry.COLUMN_TIMESTAMP;
 import static movies.popular.android.com.popularmovies.Data.MovieContract.MovieDbEntry.COLUMN_TITLE;
@@ -31,7 +34,7 @@ public class FavouriteMoviesActivity extends AppCompatActivity {
 
     private GridView grid;
     private SQLiteDatabase db;
-
+    private List<Movie> movies;
 
 
     @Override
@@ -55,12 +58,13 @@ public class FavouriteMoviesActivity extends AppCompatActivity {
                 null,
                 COLUMN_TIMESTAMP);
 
-        final List<Movie> movies = fromCursorToList(cursor);
+        movies = fromCursorToList(cursor);
 
         Log.d("number", Integer.toString(cursor.getCount()));
 
-        grid.setAdapter(new GridMoviesAdapter(getApplicationContext(), movies));
+        grid.setAdapter(new GridMoviesAdapter(this, movies));
 
+        Log.d("movies", Integer.toString(movies.size()));
         grid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -81,11 +85,12 @@ public class FavouriteMoviesActivity extends AppCompatActivity {
             Movie movie = new Movie();
 
             movie.setId(cursor.getInt(cursor.getColumnIndex(COLUMN_ID)));
+            movie.setPoster_path(cursor.getString(cursor.getColumnIndex(COLUMN_POSTER)));
             movie.setTitle(cursor.getString(cursor.getColumnIndex(COLUMN_TITLE)));
             movie.setOverview(cursor.getString(cursor.getColumnIndex(COLUMN_OVERVIEW)));
             movie.setVote_average(cursor.getDouble(cursor.getColumnIndex(COLUMN_AVERAGE_VOTE)));
             movie.setRelease_date(cursor.getString(cursor.getColumnIndex(COLUMN_RELEASE_DATE)));
-
+            Log.d("poster "  + Integer.toString(i) + ":", movie.getPoster_path()  );
             movies.add(movie);
 
             cursor.moveToNext();

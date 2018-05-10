@@ -2,17 +2,23 @@ package movies.popular.android.com.popularmovies;
 
 import android.content.ContentValues;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 import android.support.design.widget.AppBarLayout;
+import android.support.v4.app.NavUtils;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -43,14 +49,24 @@ public class MovieDetails extends AppCompatActivity {
     private TextView aver_vote;
     private ImageView poster;
     private TextView originalTitle;
-    private boolean movieMode = false;
+    private Button movieModeButton;
     private SQLiteDatabase db;
-
+    private Movie movie;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_movie_details);
+        movieModeButton = findViewById(R.id.movie_mode_button);
+
+
+
+        ActionBar act = getSupportActionBar();
+        if(act!= null){
+            act.setDisplayHomeAsUpEnabled(true);
+        }
+
+
 
 
         //initializing views in movie details
@@ -64,10 +80,11 @@ public class MovieDetails extends AppCompatActivity {
         db = dbHelper.getWritableDatabase();
 
         //get movie that was passed in MainActivity and passing data into MovieDetails
-        Movie movie =  getIntent().getParcelableExtra("movie");
+        movie =  getIntent().getParcelableExtra("movie");
         String pstr = movie.getPoster_path();
         String releaseDate = "Release date: " + movie.getRelease_date();
         String rating = String.valueOf(movie.getVote_average()) + "/10";
+
 
 
         overview.setText(movie.getOverview());
@@ -76,6 +93,16 @@ public class MovieDetails extends AppCompatActivity {
         originalTitle.setText(movie.getTitle());
         handlingImages(pstr);
 
+
+        // sharedPreferences will be used to save the state of button which will add/delete movie from Favorites
+        if( db.rawQuery("SELECT * FROM " + TABLE_NAME + " WHERE " + COLUMN_ID + " = ?" , new String[]{Integer.toString(movie.getId())} ).getCount() > 0){
+
+            movieModeButton.setBackground(getResources().getDrawable(android.R.drawable.btn_star_big_on));
+
+        }else{
+            movieModeButton.setBackground(getResources().getDrawable(android.R.drawable.btn_star_big_off));
+
+        }
 
     }
 
@@ -108,22 +135,38 @@ public class MovieDetails extends AppCompatActivity {
     }
 
     public void addToFavouriteMovies(View view) {
-        if(!movieMode)
+
+        if(db.rawQuery("SELECT * FROM " + TABLE_NAME + " WHERE id = ?" , new String[]{Integer.toString(movie.getId())}).getCount() == 0)
         {
             view.setBackground(getResources().getDrawable(android.R.drawable.btn_star_big_on));
 
             Log.d("added", String.valueOf(insertMovie()));
+
             insertMovie();
-            movieMode = true;
+            movie.changeMovieMode();
 
         }else{
+
             view.setBackground(getResources().getDrawable(android.R.drawable.btn_star_big_off));
-            //deleteMovie();
             Log.d("deleted", String.valueOf(deleteMovie()));
 
-            movieMode = false;
+            deleteMovie();
+            movie.changeMovieMode();
+
         }
 
 
     }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if(id == android.R.id.home){
+            onBackPressed();
+            }
+
+        return super.onOptionsItemSelected(item);
+
+    }
+
 }

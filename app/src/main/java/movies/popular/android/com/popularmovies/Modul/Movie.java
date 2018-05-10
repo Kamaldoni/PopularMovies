@@ -19,11 +19,10 @@ public class Movie implements Parcelable{
     private String original_title;
     private double vote_average;
     private String release_date;
-
-
+    private boolean FAVORITE;
 
     public Movie(){
-
+        FAVORITE = false;
         // just to be able to initialize an object
     }
     public Movie(Parcel in) {
@@ -34,6 +33,7 @@ public class Movie implements Parcelable{
         original_title = in.readString();
         release_date = in.readString();
         vote_average = in.readDouble();
+        FAVORITE = in.readInt() != 0;
     }
     @Override
     public int describeContents() {
@@ -50,9 +50,20 @@ public class Movie implements Parcelable{
         dest.writeString(original_title);
         dest.writeString(release_date);
         dest.writeDouble(vote_average);
-
+        dest.writeInt((FAVORITE ?  1 : 0) );
     }
 
+    public void changeMovieMode(){
+        if(FAVORITE){
+            FAVORITE = false;
+        }else{
+            FAVORITE = true;
+        }
+    }
+
+    public boolean getMovieMode(){
+        return FAVORITE;
+    }
 
     public static final Creator<Movie> CREATOR = new Creator<Movie>() {
         @Override

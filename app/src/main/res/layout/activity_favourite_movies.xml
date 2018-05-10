@@ -13,7 +13,6 @@
         android:layout_height="match_parent"
         android:id="@+id/gridview_fav"
         android:columnWidth="90dp"
-        android:numColumns="auto_fit"
         android:verticalSpacing="5dp"
         android:horizontalSpacing="8dp"
         android:stretchMode="columnWidth"

@@ -5,18 +5,18 @@
     android:layout_height="match_parent"
     android:background="@color/backgroundGrid"
     tools:context="movies.popular.android.com.popularmovies.MainActivity">
+
     <GridView
-        android:layout_width="match_parent"
-        android:padding="8dp"
-        android:layout_height="match_parent"
         android:id="@+id/gridview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:columnWidth="90dp"
-        android:numColumns="auto_fit"
-        android:verticalSpacing="5dp"
-        android:horizontalSpacing="8dp"
-        android:stretchMode="columnWidth"
         android:gravity="center"
-        >
+        android:horizontalSpacing="8dp"
+        android:padding="8dp"
+        android:stretchMode="columnWidth"
+        android:verticalSpacing="5dp">
+
     </GridView>
     <ProgressBar
         android:layout_width="40dp"

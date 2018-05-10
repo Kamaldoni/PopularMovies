@@ -21,9 +21,10 @@
         </activity>
         <activity
             android:name=".MovieDetails"
-            android:label=""
-            android:parentActivityName=".MainActivity" />
-        <activity android:name=".FavouriteMoviesActivity"></activity>
+            android:label="" />
+
+        <activity android:name=".FavouriteMoviesActivity"
+            android:label="My Favourites"/>
     </application>
 
 </manifest>

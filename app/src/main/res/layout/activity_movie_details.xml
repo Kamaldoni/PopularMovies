@@ -78,6 +78,7 @@
                 android:layout_height="40dp"
                 android:background="@android:drawable/btn_star_big_off"
                 android:padding="5dp"
+                android:id="@+id/movie_mode_button"
                 android:onClick="addToFavouriteMovies"
                 />
 

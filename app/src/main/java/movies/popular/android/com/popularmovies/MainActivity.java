@@ -7,6 +7,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Parcelable;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.LoaderManager;
@@ -79,7 +80,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
+        PreferenceManager.getDefaultSharedPreferences(this).edit().putBoolean("movie_mode", false).apply();
         gridView = findViewById(R.id.gridview);
         //appears when loading first page from API, to let the user that action is on.
         loadingIndicator = findViewById(R.id.loadingIndicator);
