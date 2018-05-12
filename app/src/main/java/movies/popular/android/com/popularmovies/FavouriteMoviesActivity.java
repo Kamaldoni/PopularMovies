@@ -1,10 +1,17 @@
 package movies.popular.android.com.popularmovies;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.AsyncTaskLoader;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -28,14 +35,15 @@ import static movies.popular.android.com.popularmovies.Data.MovieContract.MovieD
 import static movies.popular.android.com.popularmovies.Data.MovieContract.MovieDbEntry.COLUMN_RELEASE_DATE;
 import static movies.popular.android.com.popularmovies.Data.MovieContract.MovieDbEntry.COLUMN_TIMESTAMP;
 import static movies.popular.android.com.popularmovies.Data.MovieContract.MovieDbEntry.COLUMN_TITLE;
+import static movies.popular.android.com.popularmovies.Data.MovieContract.MovieDbEntry.CONTENT_URI;
 import static movies.popular.android.com.popularmovies.Data.MovieContract.MovieDbEntry.TABLE_NAME;
 
-public class FavouriteMoviesActivity extends AppCompatActivity {
+public class FavouriteMoviesActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>{
 
     private GridView grid;
     private SQLiteDatabase db;
     private List<Movie> movies;
-
+    private static final int CURSOR_LOADER_ID = 33;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,25 +54,17 @@ public class FavouriteMoviesActivity extends AppCompatActivity {
         grid.setNumColumns(GridView.AUTO_FIT);
         grid.setVisibility(View.VISIBLE);
 
-        MovieDbHelper dbHelper = new MovieDbHelper(this);
 
-        db = dbHelper.getReadableDatabase();
 
-        Cursor cursor = db.query(TABLE_NAME,
-                null,
-                null,
-                null,
-                null,
-                null,
-                COLUMN_TIMESTAMP);
 
-        movies = fromCursorToList(cursor);
 
-        Log.d("number", Integer.toString(cursor.getCount()));
 
-        grid.setAdapter(new GridMoviesAdapter(this, movies));
 
-        Log.d("movies", Integer.toString(movies.size()));
+       // Log.d("number", Integer.toString(cursor.getCount()));
+
+        //grid.setAdapter(new GridMoviesAdapter(this, movies));
+
+        //Log.d("movies", Integer.toString(movies.size()));
         grid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -74,7 +74,14 @@ public class FavouriteMoviesActivity extends AppCompatActivity {
 
             }
         });
+        getSupportLoaderManager().initLoader(CURSOR_LOADER_ID, null, this);
 
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        getSupportLoaderManager().restartLoader(CURSOR_LOADER_ID, null, this);
     }
 
     private List<Movie> fromCursorToList(Cursor cursor){
@@ -99,4 +106,52 @@ public class FavouriteMoviesActivity extends AppCompatActivity {
         return movies;
     }
 
+    @SuppressLint("StaticFieldLeak")
+    @NonNull
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, @Nullable Bundle args) {
+        return new AsyncTaskLoader<Cursor>(this) {
+
+            Cursor cursor = null;
+            @Override
+            protected void onStartLoading() {
+                super.onStartLoading();
+                if (cursor == null){
+                    forceLoad();
+                }else{
+                    deliverResult(cursor);
+                }
+            }
+
+            @Override
+            public void deliverResult(@Nullable Cursor data) {
+                cursor = data;
+                super.deliverResult(data);
+            }
+
+            @Nullable
+            @Override
+            public Cursor loadInBackground() {
+
+                cursor = getContentResolver().query(CONTENT_URI,
+                        null,
+                        null,
+                        null,
+                        COLUMN_TIMESTAMP);
+
+                return cursor;
+            }
+        };
+    }
+
+    @Override
+    public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor data) {
+        movies = fromCursorToList(data);
+        grid.setAdapter(new GridMoviesAdapter(this, movies));
+    }
+
+    @Override
+    public void onLoaderReset(@NonNull Loader<Cursor> loader) {
+
+    }
 }

@@ -25,6 +25,13 @@
 
         <activity android:name=".FavouriteMoviesActivity"
             android:label="My Favourites"/>
+
+        <provider
+            android:authorities="movies.popular.android.com.popularmovies"
+            android:name=".Data.MovieContentProvider"
+            android:exported="false"
+            />
+
     </application>
 
 </manifest>

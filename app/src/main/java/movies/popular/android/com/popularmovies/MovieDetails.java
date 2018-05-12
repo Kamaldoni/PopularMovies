@@ -8,6 +8,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.support.design.widget.AppBarLayout;
@@ -28,6 +29,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import movies.popular.android.com.popularmovies.Data.MovieContract;
 import movies.popular.android.com.popularmovies.Data.MovieDbHelper;
 import movies.popular.android.com.popularmovies.Modul.Movie;
 import movies.popular.android.com.popularmovies.Util.Utils;
@@ -38,6 +40,7 @@ import static movies.popular.android.com.popularmovies.Data.MovieContract.MovieD
 import static movies.popular.android.com.popularmovies.Data.MovieContract.MovieDbEntry.COLUMN_POSTER;
 import static movies.popular.android.com.popularmovies.Data.MovieContract.MovieDbEntry.COLUMN_RELEASE_DATE;
 import static movies.popular.android.com.popularmovies.Data.MovieContract.MovieDbEntry.COLUMN_TITLE;
+import static movies.popular.android.com.popularmovies.Data.MovieContract.MovieDbEntry.CONTENT_URI;
 import static movies.popular.android.com.popularmovies.Data.MovieContract.MovieDbEntry.TABLE_NAME;
 
 
@@ -95,7 +98,10 @@ public class MovieDetails extends AppCompatActivity {
 
 
         // sharedPreferences will be used to save the state of button which will add/delete movie from Favorites
-        if( db.rawQuery("SELECT * FROM " + TABLE_NAME + " WHERE " + COLUMN_ID + " = ?" , new String[]{Integer.toString(movie.getId())} ).getCount() > 0){
+        if( getContentResolver().query(CONTENT_URI, null, COLUMN_ID + "=?",
+                new String[]{String.valueOf(movie.getId())},
+                null,
+                null).getCount() > 0){
 
             movieModeButton.setBackground(getResources().getDrawable(android.R.drawable.btn_star_big_on));
 
@@ -136,23 +142,41 @@ public class MovieDetails extends AppCompatActivity {
 
     public void addToFavouriteMovies(View view) {
 
-        if(db.rawQuery("SELECT * FROM " + TABLE_NAME + " WHERE id = ?" , new String[]{Integer.toString(movie.getId())}).getCount() == 0)
+        if(getContentResolver().query(CONTENT_URI, null, COLUMN_ID + "=?",
+                new String[]{String.valueOf(movie.getId())},
+                null,
+                null).getCount() == 0)
         {
             view.setBackground(getResources().getDrawable(android.R.drawable.btn_star_big_on));
 
-            Log.d("added", String.valueOf(insertMovie()));
+            //Log.d("added", String.valueOf(insertMovie()));
 
-            insertMovie();
-            movie.changeMovieMode();
+            //insertMovie();
+
+
+            ContentValues cv = new ContentValues();
+            cv.put(COLUMN_ID, movie.getId());
+            cv.put(COLUMN_TITLE, movie.getTitle());
+            cv.put(COLUMN_OVERVIEW, movie.getOverview());
+            cv.put(COLUMN_POSTER, movie.getPoster_path());
+            cv.put(COLUMN_RELEASE_DATE, movie.getRelease_date());
+            cv.put(COLUMN_AVERAGE_VOTE, movie.getVote_average());
+
+            getContentResolver().insert(CONTENT_URI, cv);
+
 
         }else{
 
             view.setBackground(getResources().getDrawable(android.R.drawable.btn_star_big_off));
             Log.d("deleted", String.valueOf(deleteMovie()));
 
-            deleteMovie();
-            movie.changeMovieMode();
+            //deleteMovie();
+            Uri uri = MovieContract.MovieDbEntry.CONTENT_URI.buildUpon().
+                    appendPath(String.valueOf(movie.getId())).build();
 
+            getContentResolver().delete(uri, null, null);
+
+            movie.changeMovieMode();
         }
 
 
