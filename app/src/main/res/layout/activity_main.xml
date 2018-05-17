@@ -6,18 +6,13 @@
     android:background="@color/backgroundGrid"
     tools:context="movies.popular.android.com.popularmovies.MainActivity">
 
-    <GridView
-        android:id="@+id/gridview"
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recyclerViewId"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:columnWidth="90dp"
-        android:gravity="center"
-        android:horizontalSpacing="8dp"
-        android:padding="8dp"
-        android:stretchMode="columnWidth"
-        android:verticalSpacing="5dp">
+        android:orientation="vertical">
 
-    </GridView>
+    </android.support.v7.widget.RecyclerView>
     <ProgressBar
         android:layout_width="40dp"
         android:layout_height="40dp"
@@ -34,7 +29,6 @@
         android:text="@string/error_message"
         android:textColor="@color/colorAccent"
         android:visibility="invisible"
-
         />
 
 </FrameLayout>

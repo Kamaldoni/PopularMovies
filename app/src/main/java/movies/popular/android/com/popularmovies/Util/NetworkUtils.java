@@ -31,7 +31,12 @@ public class NetworkUtils {
 
     final static String API = "api_key";
 
-    public static URL buildUrl(String sortType) throws MalformedURLException {
+    final static String VIDEOS = "videos";
+
+
+
+
+    public static URL buildMoviesUrl(String sortType) throws MalformedURLException {
 
         //"https://api.themoviedb.org/3/movie/" + sortType + "?page=" + Integer.toString(current_page) +
         //                    "&language=en-US&api_key=" + API_KEY;
@@ -52,55 +57,62 @@ public class NetworkUtils {
         return url;
     }
 
+    public static URL buildReviewUrl(int movieId) throws MalformedURLException {
 
-    //gets json from API using given URL and fetches the data to the provided List,
+        //https://api.themoviedb.org/3/movie
+        // /284054/reviews?api_key=5633aeac74744826548fa39314adfc5e&language=en-US&page=1
+        Uri.Builder builder = new Uri.Builder();
 
-    public static void getResponseFromHttpUrl(List<Movie> movieList, URL url ){
+        builder.scheme("http")
+                .authority(AUTHORITY)
+                .appendPath("3")
+                .appendPath("movie")
+                .appendPath(Integer.toString(movieId))
+                .appendPath("reviews")
+                .appendQueryParameter(LANGUAGE, "en_US")
+                .appendQueryParameter(API , API_KEY)
+                .appendQueryParameter("page", "1");
 
-        OkHttpClient client = new OkHttpClient();
+        URL url  = new URL(builder.build().toString());
 
-        MediaType mediaType = MediaType.parse("application/octet-stream");
-        RequestBody body = RequestBody.create(mediaType, "{}");
-        Request request = new Request.Builder()
-                .url(url)
-                .get()
-                .build();
-
-        Response response = null;
-        JSONObject json = null;
-        JSONArray movies = null;
-
-        try {
-            response = client.newCall(request).execute();
-            json = new JSONObject(response.body().string());
-            movies = json.getJSONArray("results");
-        } catch (JSONException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-
-        for (int i = 0; i < movies.length(); i++) {
-
-            Movie movie = new Movie();
-            JSONObject movieJson = null;
-            try {
-                movieJson = movies.getJSONObject(i);
-                movie.setPoster_path(movieJson.getString(Utils.MOVIE_POSTER));
-                movie.setTitle(movieJson.getString(Utils.TITLE));
-                movie.setOverview(movieJson.getString(Utils.OVERVIEW));
-                movie.setRelease_date(movieJson.getString(Utils.RELEASE_DATE));
-                movie.setId(movieJson.getInt(Utils.ID));
-                movie.setVote_average(movieJson.getDouble(Utils.VOTE_AVER));
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            movieList.add(movie);
-
-        }
-
+        return url;
     }
 
+    public static URL buildMovieDetailUrl (int id) throws MalformedURLException {
+
+
+        Uri.Builder builder = new Uri.Builder();
+
+        builder.scheme("http")
+                .authority(AUTHORITY)
+                .appendPath("3")
+                .appendPath("movie")
+                .appendPath(Integer.toString(id))
+                .appendQueryParameter(LANGUAGE, "en_US")
+                .appendQueryParameter(API , API_KEY)
+                .appendQueryParameter("page", "1");
+
+        URL url  = new URL(builder.build().toString());
+
+        return url;
+    }
+
+    public static URL buildVideosUrl (int id) throws MalformedURLException {
+        Uri.Builder builder = new Uri.Builder();
+
+        builder.scheme("http")
+                .authority(AUTHORITY)
+                .appendPath("3")
+                .appendPath("movie")
+                .appendPath(Integer.toString(id))
+                .appendPath(VIDEOS)
+                .appendQueryParameter(LANGUAGE, "en_US")
+                .appendQueryParameter(API , API_KEY);
+
+        URL url  = new URL(builder.build().toString());
+
+        return url;
+
+    }
 
 }

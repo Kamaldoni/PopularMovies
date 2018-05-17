@@ -3,6 +3,7 @@ package movies.popular.android.com.popularmovies;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Point;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
@@ -15,11 +16,17 @@ import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.util.DisplayMetrics;
+import android.util.Log;
+import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
+import android.widget.GridLayout;
 import android.widget.GridView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -37,6 +44,7 @@ import java.util.List;
 import movies.popular.android.com.popularmovies.Modul.Movie;
 import movies.popular.android.com.popularmovies.Util.GridMoviesAdapter;
 import movies.popular.android.com.popularmovies.Util.NetworkUtils;
+import movies.popular.android.com.popularmovies.Util.ParsingJsonUtils;
 import movies.popular.android.com.popularmovies.Util.Utils;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -46,21 +54,21 @@ import okhttp3.Response;
 
 import static movies.popular.android.com.popularmovies.Util.Utils.API_KEY;
 
-public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<List<Movie>> {
+public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<List<Movie>>,
+GridMoviesAdapter.GridItemViewListener{
 
-    private GridView gridView;
+
     public static int current_page = 1;
     public static List<Movie> pop_movies = new ArrayList<>();
-    public static List<Movie> high_ranked_movies = new ArrayList<>();
     final static String POPULAR = "popular";
     final static String TOP_RATED = "top_rated";
     public static String sorting = POPULAR;
     private ProgressBar loadingIndicator;
     private TextView errorMessage;
-
+    private RecyclerView recyclerView;
     private static final int MOVIE_LOADER_ID =  22;
-
-
+    private GridMoviesAdapter adapter;
+    private  GridLayoutManager manager;
     // it checks whether there is an internet connection, now my app doesn't crash when there is no internet connection.
     // it is been taken from https://stackoverflow.com/questions/37232927/app-crashes-when-no-internet-connection-is-available
 
@@ -78,40 +86,68 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
 
-        PreferenceManager.getDefaultSharedPreferences(this).edit().putBoolean("movie_mode", false).apply();
-        gridView = findViewById(R.id.gridview);
-        //appears when loading first page from API, to let the user that action is on.
-        loadingIndicator = findViewById(R.id.loadingIndicator);
+        initializeViews();
 
-        Parcelable state = gridView.onSaveInstanceState();
-        gridView.setNumColumns(2);
+        if(!internet_connection()){
+            showErrorMessage();
+        }else{
 
-        getSupportLoaderManager().initLoader(MOVIE_LOADER_ID, null, this);
+            setRecyclerViewOnScrollListener(manager);
 
-        errorMessage = findViewById(R.id.error_message);
+            getFirstPage();
 
-        getFirstPage();
+            getSupportLoaderManager().initLoader(MOVIE_LOADER_ID, null, this);
 
-        // I have looked this method from stackoverflow
-        gridView.setOnScrollListener(new AbsListView.OnScrollListener() {
+        }
+
+
+
+    }
+
+    private void setRecyclerViewOnScrollListener(final GridLayoutManager manager){
+
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            // will not be implemented
             @Override
-            public void onScrollStateChanged(AbsListView view, int scrollState) {
-
+            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
             }
-
             @Override
-            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-                int lastInScreen = firstVisibleItem + visibleItemCount;
-                if (lastInScreen == totalItemCount) {
-                    requestForMovies();
-                    //gridView.setSelection(gridView.getLastVisiblePosition());
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                // last item position
+                int lastItemPosition = manager.findLastVisibleItemPosition();
+                int totalItemCount = manager.getItemCount();
+
+                if(dy > 0){
+                    if(lastItemPosition + 1 >= totalItemCount ){
+                        requestForMovies();
+                    }
                 }
             }
         });
 
-        gridView.onRestoreInstanceState(state);
+    }
+    private void initializeViews() {
+        loadingIndicator = findViewById(R.id.loadingIndicator);
+        errorMessage = findViewById(R.id.error_message);
+        recyclerView = findViewById(R.id.recyclerViewId);
+
+        DisplayMetrics dm = getResources().getDisplayMetrics();
+
+        manager = new GridLayoutManager(this, 2);
+        if (dm.heightPixels < dm.widthPixels){
+            manager = new GridLayoutManager(this, 3);
+        }
+
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setLayoutManager(manager);
+
+        adapter = new GridMoviesAdapter( this, pop_movies,this);
+        recyclerView.setAdapter(adapter);
 
     }
 
@@ -119,7 +155,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     //shows error message when there is no internet connection
     private void showErrorMessage() {
 
-        gridView.setVisibility(View.INVISIBLE);
+        recyclerView.setVisibility(View.INVISIBLE);
         errorMessage.setVisibility(View.VISIBLE);
 
     }
@@ -129,7 +165,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     {
 
         errorMessage.setVisibility(View.INVISIBLE);
-        gridView.setVisibility(View.VISIBLE);
+        recyclerView.setVisibility(View.VISIBLE);
 
     }
 
@@ -138,7 +174,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     private void getFirstPage() {
         if (internet_connection())
         {
-            high_ranked_movies.clear();
             pop_movies.clear();
             current_page = 1;
 
@@ -151,11 +186,33 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             }
         }
         else{
-            //create a snackbar telling the user there is no internet connection and issuing a chance to reconnect
+            //shows an error message telling the user there is no internet connection and issuing a chance to reconnect
             showErrorMessage();
 
         }
     }
+
+    private void requestForMovies() {
+        if (internet_connection())
+        {
+            current_page += 1;
+            LoaderManager manager = getSupportLoaderManager();
+            Loader<List<Movie>> loader = manager.getLoader(MOVIE_LOADER_ID);
+            if(loader == null){
+                manager.initLoader(MOVIE_LOADER_ID, null, this);
+
+            }else{
+                manager.restartLoader(MOVIE_LOADER_ID, null, this);
+            }
+        }
+        else{
+            showErrorMessage();
+        }
+
+
+    }
+
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -181,12 +238,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             current_page = 1;
             getFirstPage();
             return  true;
-        }
-        else if (id== R.id.refresh)
-        {
-            current_page = 1;
-            getFirstPage();
-            return true;
         }else if(id == R.id.fav_menu){
 
             Intent intent= new Intent(this, FavouriteMoviesActivity.class);
@@ -197,25 +248,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
 
     // this method is used to load more posters from API when the gridView scrolls to the end of the current movie list
-    private void requestForMovies() {
-        if (internet_connection())
-        {
-            current_page += 1;
-            LoaderManager manager = getSupportLoaderManager();
-            Loader<List<Movie>> loader = manager.getLoader(MOVIE_LOADER_ID);
-            if(loader == null){
-                manager.initLoader(MOVIE_LOADER_ID, null, this);
 
-                            }else{
-                manager.restartLoader(MOVIE_LOADER_ID, null, this);
-            }
-        }
-        else{
-            showErrorMessage();
-        }
-
-
-    }
 
 
     @NonNull
@@ -253,12 +286,12 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
                 URL url = null;
                 try {
-                    url = NetworkUtils.buildUrl(sorting);
+                    url = NetworkUtils.buildMoviesUrl(sorting);
                 } catch (MalformedURLException e) {
                     e.printStackTrace();
                 }
 
-                NetworkUtils.getResponseFromHttpUrl(movieList, url);
+                ParsingJsonUtils.getResponseFromHttpUrl(movieList, url);
 
 
                 return movieList;
@@ -277,31 +310,12 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         else
             showData();
 
-        List<Movie> movies = null;
+        pop_movies.addAll(movieList);
 
-        if (sorting.equals(POPULAR)){
-            movies = pop_movies;
-        }else
-            movies = high_ranked_movies;
-
-        movies.addAll(movieList);
+        adapter.notifyDataSetChanged();
 
 
-
-        gridView.setAdapter(new GridMoviesAdapter(getApplicationContext(), movies ));
-
-        gridView.setSelection(gridView.getFirstVisiblePosition());
-
-        final List<Movie> finalMovies = movies;
-        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent intent = new Intent(MainActivity.this, MovieDetails.class);
-                intent.putExtra("movie", finalMovies.get(position));
-                startActivity(intent);
-
-            }
-        });
+        Log.d("movielist", String.valueOf(movieList.size()));
     }
 
     @Override
@@ -309,4 +323,10 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     }
 
+    @Override
+    public void onClickItemListener(int clickedItemIndex) {
+        Intent intent = new Intent(MainActivity.this, MovieDetails.class);
+        intent.putExtra("movie", pop_movies.get(clickedItemIndex));
+        startActivity(intent);
+    }
 }

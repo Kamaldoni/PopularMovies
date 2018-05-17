@@ -7,17 +7,16 @@
     tools:context=".FavouriteMoviesActivity">
 
 
-    <GridView
+    <android.support.v7.widget.RecyclerView
         android:layout_width="match_parent"
-        android:padding="8dp"
         android:layout_height="match_parent"
-        android:id="@+id/gridview_fav"
+        android:id="@+id/recyclerViewId"
         android:columnWidth="90dp"
         android:verticalSpacing="5dp"
         android:horizontalSpacing="8dp"
         android:stretchMode="columnWidth"
         android:gravity="center"
         >
-    </GridView>
+    </android.support.v7.widget.RecyclerView>
 
 </FrameLayout>

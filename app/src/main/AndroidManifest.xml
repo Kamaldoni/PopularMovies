@@ -21,7 +21,7 @@
         </activity>
         <activity
             android:name=".MovieDetails"
-            android:label="" />
+            android:label="MovieDetail" />
 
         <activity android:name=".FavouriteMoviesActivity"
             android:label="My Favourites"/>

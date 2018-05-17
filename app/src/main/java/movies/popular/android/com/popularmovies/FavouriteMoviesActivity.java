@@ -14,7 +14,12 @@ import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.GridView;
@@ -37,11 +42,13 @@ import static movies.popular.android.com.popularmovies.Data.MovieContract.MovieD
 import static movies.popular.android.com.popularmovies.Data.MovieContract.MovieDbEntry.COLUMN_TITLE;
 import static movies.popular.android.com.popularmovies.Data.MovieContract.MovieDbEntry.CONTENT_URI;
 import static movies.popular.android.com.popularmovies.Data.MovieContract.MovieDbEntry.TABLE_NAME;
+import static movies.popular.android.com.popularmovies.MainActivity.POPULAR;
+import static movies.popular.android.com.popularmovies.MainActivity.TOP_RATED;
 
-public class FavouriteMoviesActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>{
+public class FavouriteMoviesActivity extends AppCompatActivity implements
+        LoaderManager.LoaderCallbacks<Cursor>, GridMoviesAdapter.GridItemViewListener{
 
-    private GridView grid;
-    private SQLiteDatabase db;
+    private RecyclerView recyclerView;
     private List<Movie> movies;
     private static final int CURSOR_LOADER_ID = 33;
 
@@ -50,30 +57,16 @@ public class FavouriteMoviesActivity extends AppCompatActivity implements Loader
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_favourite_movies);
 
-        grid = findViewById(R.id.gridview_fav);
-        grid.setNumColumns(GridView.AUTO_FIT);
-        grid.setVisibility(View.VISIBLE);
+        recyclerView = findViewById(R.id.recyclerViewId);
 
 
 
-
-
-
-
-       // Log.d("number", Integer.toString(cursor.getCount()));
-
-        //grid.setAdapter(new GridMoviesAdapter(this, movies));
-
-        //Log.d("movies", Integer.toString(movies.size()));
-        grid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent intent = new Intent(FavouriteMoviesActivity.this, MovieDetails.class);
-                intent.putExtra("movie", movies.get(position));
-                startActivity(intent);
-
-            }
-        });
+        DisplayMetrics dm = getResources().getDisplayMetrics();
+        GridLayoutManager manager = new GridLayoutManager(this, 2);
+        if (dm.heightPixels < dm.widthPixels){
+            manager = new GridLayoutManager(this, 3);
+        }
+        recyclerView.setLayoutManager(manager);
         getSupportLoaderManager().initLoader(CURSOR_LOADER_ID, null, this);
 
     }
@@ -147,11 +140,51 @@ public class FavouriteMoviesActivity extends AppCompatActivity implements Loader
     @Override
     public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor data) {
         movies = fromCursorToList(data);
-        grid.setAdapter(new GridMoviesAdapter(this, movies));
+        recyclerView.setAdapter(new GridMoviesAdapter( this, movies, this));
     }
 
     @Override
     public void onLoaderReset(@NonNull Loader<Cursor> loader) {
 
+    }
+
+    @Override
+    public void onClickItemListener(int clickedItemIndex) {
+        Intent intent = new Intent(FavouriteMoviesActivity.this, MovieDetails.class);
+        intent.putExtra("movie", movies.get(clickedItemIndex));
+        startActivity(intent);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main, menu);
+
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.main_popular)
+        {
+            MainActivity.current_page = 1;
+            MainActivity.sorting = POPULAR;
+            Intent intent = new Intent(FavouriteMoviesActivity.this, MainActivity.class);
+            startActivity(intent);
+            return  true;
+
+        }else if (id == R.id.main_rating)
+        {
+            MainActivity.current_page = 1;
+            MainActivity.sorting = TOP_RATED;
+            Intent intent = new Intent(FavouriteMoviesActivity.this, MainActivity.class);
+            startActivity(intent);
+            return  true;
+        }else if(id == R.id.fav_menu){
+
+            getSupportLoaderManager().restartLoader(CURSOR_LOADER_ID, null, this);
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }

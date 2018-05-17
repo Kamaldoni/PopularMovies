@@ -19,4 +19,5 @@ public class Utils {
     public final static String RELEASE_DATE = "release_date";
     public final static String API_KEY = BuildConfig.API_KEY;
     public final static String BASE_URL = "http://image.tmdb.org/t/p/";
+    public final static String YOUTUBE_API = BuildConfig.YOUTUBE_API;
 }
