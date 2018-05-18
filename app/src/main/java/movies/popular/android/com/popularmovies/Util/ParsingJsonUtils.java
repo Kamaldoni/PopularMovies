@@ -34,6 +34,8 @@ public class ParsingJsonUtils {
     private static final String KEY = "key";
 
 
+
+    //gets video keys from given url and movie id, returns list of Strings
     public static List<String> getVideosFromHttp(URL url){
 
         List<String> videoKeys = new ArrayList<>();
@@ -79,6 +81,8 @@ public class ParsingJsonUtils {
         return videoKeys;
     }
 
+    //gets movie duration from the movie details with given url, returns the String of duration
+    //it is making the app really slow,just doing background task for only one data
     public static String getDurationFromApi(URL url){
 
         String minuts = "min";
@@ -113,6 +117,8 @@ public class ParsingJsonUtils {
         return durationString.concat(minuts);
     }
 
+    //gets reviews from url and returns the string which will be set to textView
+    //I thought in this way I can make the movieDetailsActivity less complex
     public static String getReviewsFromHttp(URL url){
 
         String reviews = "";

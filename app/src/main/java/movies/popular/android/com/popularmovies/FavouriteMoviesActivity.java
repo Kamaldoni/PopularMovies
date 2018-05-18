@@ -44,7 +44,13 @@ import static movies.popular.android.com.popularmovies.Data.MovieContract.MovieD
 import static movies.popular.android.com.popularmovies.Data.MovieContract.MovieDbEntry.TABLE_NAME;
 import static movies.popular.android.com.popularmovies.MainActivity.POPULAR;
 import static movies.popular.android.com.popularmovies.MainActivity.TOP_RATED;
-
+/*This activity is created to hold the favorite movies of the user
+* It uses SQLite Database and ContentProvider to manage the data
+* I decided to create a new activity in order to make MainActivity less complex and readable
+* All activities have the same menu, but operate differently since they are different activities
+  * Very similar to the MainActivity but this activity can be seen even
+  * there is no internet connection
+  * It uses the same GridAdapter to manage recyclerView data*/
 public class FavouriteMoviesActivity extends AppCompatActivity implements
         LoaderManager.LoaderCallbacks<Cursor>, GridMoviesAdapter.GridItemViewListener{
 

@@ -57,13 +57,18 @@ import static movies.popular.android.com.popularmovies.Util.Utils.API_KEY;
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<List<Movie>>,
 GridMoviesAdapter.GridItemViewListener{
 
-
+    //holds current page in movieList
     public static int current_page = 1;
+    //holds the List of movies to be linked to recyclerViewAdapter
     public static List<Movie> pop_movies = new ArrayList<>();
+    //const to be used when the user changes the types of movies
     final static String POPULAR = "popular";
     final static String TOP_RATED = "top_rated";
+    //holds the current sorting type; POPULAR by default
     public static String sorting = POPULAR;
+    //will be shown while background task is taking place
     private ProgressBar loadingIndicator;
+    //error message that is invisible will be shown when there is no internet connection
     private TextView errorMessage;
     private RecyclerView recyclerView;
     private static final int MOVIE_LOADER_ID =  22;
@@ -107,6 +112,7 @@ GridMoviesAdapter.GridItemViewListener{
 
     }
 
+    //sets onScrollListener to recyclerView given the manager
     private void setRecyclerViewOnScrollListener(final GridLayoutManager manager){
 
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
@@ -131,13 +137,16 @@ GridMoviesAdapter.GridItemViewListener{
         });
 
     }
+    //initializes all views from this activity
+
     private void initializeViews() {
         loadingIndicator = findViewById(R.id.loadingIndicator);
         errorMessage = findViewById(R.id.error_message);
         recyclerView = findViewById(R.id.recyclerViewId);
 
         DisplayMetrics dm = getResources().getDisplayMetrics();
-
+        //gridLayout shows 3 columns in landscape mode
+        //and 2 columns in portrait mode
         manager = new GridLayoutManager(this, 2);
         if (dm.heightPixels < dm.widthPixels){
             manager = new GridLayoutManager(this, 3);
@@ -177,6 +186,7 @@ GridMoviesAdapter.GridItemViewListener{
             pop_movies.clear();
             current_page = 1;
 
+            // if loader is
             LoaderManager manager = getSupportLoaderManager();
             Loader<List<Movie>> loader = manager.getLoader(MOVIE_LOADER_ID);
             if(loader == null){
@@ -305,24 +315,24 @@ GridMoviesAdapter.GridItemViewListener{
 
         loadingIndicator.setVisibility(View.INVISIBLE);
 
-        if (movieList == null)
+        if (movieList == null){
             showErrorMessage();
-        else
+        }else{
             showData();
 
-        pop_movies.addAll(movieList);
+            pop_movies.addAll(movieList);
 
-        adapter.notifyDataSetChanged();
+            adapter.notifyDataSetChanged();
+        }
 
 
-        Log.d("movielist", String.valueOf(movieList.size()));
-    }
+        }
 
     @Override
     public void onLoaderReset(@NonNull Loader<List<Movie>> loader) {
 
     }
-
+    // when the movie thumbnail is clicked navigate to MovieDetailsActivity
     @Override
     public void onClickItemListener(int clickedItemIndex) {
         Intent intent = new Intent(MainActivity.this, MovieDetails.class);

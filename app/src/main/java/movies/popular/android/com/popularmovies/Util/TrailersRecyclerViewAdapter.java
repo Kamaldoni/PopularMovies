@@ -11,6 +11,10 @@ import android.widget.TextView;
 
 import movies.popular.android.com.popularmovies.R;
 
+
+/*An adapter that manages the data in trailers recyclerView
+* Its holder has TextView(Trailer label) and the Button when clicked switches the video key
+* and plays the corresponding trailer*/
 public class TrailersRecyclerViewAdapter extends RecyclerView.Adapter<TrailersRecyclerViewAdapter.TrailerViewHolder> {
 
     private int numOfVideos;
@@ -47,7 +51,7 @@ public class TrailersRecyclerViewAdapter extends RecyclerView.Adapter<TrailersRe
             }
         });
     }
-
+    // the number of videos is gotten from an activity that uses this adapter
     @Override
     public int getItemCount() {
         return numOfVideos;

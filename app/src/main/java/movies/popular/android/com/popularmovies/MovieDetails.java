@@ -64,17 +64,14 @@ public class MovieDetails extends AppCompatActivity implements
     private TextView originalTitle;
     private Button movieModeButton;
     private TextView reviews;
-    private Movie movie;
     private TextView movieDuration;
 
+    private Movie movie;
     private static final int REVIEW_LOADER_ID = 44;
     private YouTubePlayer youTubePlayer;
     private YouTubePlayerSupportFragment youTubePlayerFragment;
     private List<String> videoKeys = new ArrayList<>();
     private RecyclerView trailers;
-
-    //TODO: initialize TrailersRecyclerViewAdapter and set the number of videos got from API :
-
 
 
     @Override

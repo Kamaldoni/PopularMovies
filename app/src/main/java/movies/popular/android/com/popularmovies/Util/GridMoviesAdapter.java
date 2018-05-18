@@ -35,7 +35,14 @@ import movies.popular.android.com.popularmovies.R;
  */
 
 
-// very simple arrayAdapter which is used with gridView, I mainly looked for GridView definition in developers.android
+/*An adapter which manages the data in movies recyclerView.
+* ViewHolder got only the movie poster that should be shown
+* and switch Activity when clicked
+* In order to fill all the spaces I filled the width of display and made the width/height
+* ratio of an image equal to 2/3
+* Its same for both landscape and portrait mode
+* I used Picasso to load the poster from the given url*/
+
 public class GridMoviesAdapter extends RecyclerView.Adapter<GridMoviesAdapter.MovieViewHolder>{
 
     private List<Movie> movies;
@@ -82,7 +89,6 @@ public class GridMoviesAdapter extends RecyclerView.Adapter<GridMoviesAdapter.Mo
             height =( 3 * width )/2;
         }
         Movie movie = movies.get(position);
-        //holder.moviePoster.setLayoutParams(new RecyclerView.LayoutParams(100,100));
         final String SIZE = "w342//";
         String final_path = Utils.BASE_URL + SIZE + movie.getPoster_path();
         Picasso.get().load(final_path).centerCrop(77).resize(width, height).into(holder.moviePoster);

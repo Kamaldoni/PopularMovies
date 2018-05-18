@@ -33,13 +33,12 @@ public class NetworkUtils {
 
     final static String VIDEOS = "videos";
 
-
+    /*There are only three urls that should be build
+    * So I decided to build them separately.
+    * These Urls will be used when parsing the json from http(API)*/
 
 
     public static URL buildMoviesUrl(String sortType) throws MalformedURLException {
-
-        //"https://api.themoviedb.org/3/movie/" + sortType + "?page=" + Integer.toString(current_page) +
-        //                    "&language=en-US&api_key=" + API_KEY;
 
         Uri.Builder builder = new Uri.Builder();
 
@@ -59,9 +58,7 @@ public class NetworkUtils {
 
     public static URL buildReviewUrl(int movieId) throws MalformedURLException {
 
-        //https://api.themoviedb.org/3/movie
-        // /284054/reviews?api_key=5633aeac74744826548fa39314adfc5e&language=en-US&page=1
-        Uri.Builder builder = new Uri.Builder();
+                Uri.Builder builder = new Uri.Builder();
 
         builder.scheme("http")
                 .authority(AUTHORITY)
