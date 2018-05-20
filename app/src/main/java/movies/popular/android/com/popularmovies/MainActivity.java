@@ -57,6 +57,8 @@ import static movies.popular.android.com.popularmovies.Util.Utils.API_KEY;
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<List<Movie>>,
 GridMoviesAdapter.GridItemViewListener{
 
+    private static final String SAVED_LAYOUT_MANAGER = "manager" ;
+    public Parcelable layoutManagerSavedState;
     //holds current page in movieList
     public static int current_page = 1;
     //holds the List of movies to be linked to recyclerViewAdapter
@@ -76,6 +78,7 @@ GridMoviesAdapter.GridItemViewListener{
     static boolean loading = true;
 
     private final String ITEM_POSITION = "position";
+
 
     // it checks whether there is an internet connection, now my app doesn't crash when there is no internet connection.
     // it is been taken from https://stackoverflow.com/questions/37232927/app-crashes-when-no-internet-connection-is-available
@@ -98,15 +101,17 @@ GridMoviesAdapter.GridItemViewListener{
         setContentView(R.layout.activity_main);
 
         initializeViews();
-        if(savedInstanceState!=null && savedInstanceState.containsKey(ITEM_POSITION)){
-            setRecyclerViewOnScrollListener((GridLayoutManager)recyclerView.getLayoutManager());
+
+        if(savedInstanceState!=null ){
+
             ((GridMoviesAdapter)recyclerView.getAdapter()).swapData(pop_movies);
-            if(savedInstanceState.getInt(ITEM_POSITION) < pop_movies.size()){
-                recyclerView.scrollToPosition(savedInstanceState.getInt(ITEM_POSITION));
-            }
-            Log.d("item position",
-                    Integer.toString(savedInstanceState.getInt(ITEM_POSITION)));
+
+            restoreLayoutManagerPosition();
+
+            setRecyclerViewOnScrollListener((GridLayoutManager)recyclerView.getLayoutManager());
+
         }else{
+
             if(!internet_connection()){
                 showErrorMessage();
             }else{
@@ -124,33 +129,32 @@ GridMoviesAdapter.GridItemViewListener{
         }
 
 
-
-
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        Log.d("page onPause", Integer.toString(current_page));
-        Log.d("movies onPause", Integer.toString(pop_movies.size()));
+    private void restoreLayoutManagerPosition() {
+        if (layoutManagerSavedState != null) {
+            ((GridLayoutManager)recyclerView.getLayoutManager()).onRestoreInstanceState(layoutManagerSavedState);
+        }
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putInt(ITEM_POSITION, ((GridLayoutManager)recyclerView.
-                getLayoutManager()).findFirstVisibleItemPosition());
-        Log.d("page onSave", Integer.toString(current_page));
-        Log.d("movies onSave", Integer.toString(pop_movies.size()));
+        outState.putParcelable(SAVED_LAYOUT_MANAGER, ((GridLayoutManager)recyclerView.getLayoutManager()).onSaveInstanceState());
+
     }
 
     @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        Log.d("page onRestore", Integer.toString(current_page));
-        Log.d("movies onRestore", Integer.toString(pop_movies.size()));
+    protected void onRestoreInstanceState(Bundle state) {
 
+        if(state != null){
+            layoutManagerSavedState = state.getParcelable(SAVED_LAYOUT_MANAGER);
+        }
+
+
+        super.onRestoreInstanceState(state);
     }
+
 
     //sets onScrollListener to recyclerView given the manager
     private void setRecyclerViewOnScrollListener(final GridLayoutManager manager){
