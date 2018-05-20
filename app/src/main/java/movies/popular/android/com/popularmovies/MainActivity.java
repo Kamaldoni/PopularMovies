@@ -57,8 +57,8 @@ import static movies.popular.android.com.popularmovies.Util.Utils.API_KEY;
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<List<Movie>>,
 GridMoviesAdapter.GridItemViewListener{
 
-    private static final String SAVED_LAYOUT_MANAGER = "manager" ;
-    public Parcelable layoutManagerSavedState;
+
+
     //holds current page in movieList
     public static int current_page = 1;
     //holds the List of movies to be linked to recyclerViewAdapter
@@ -78,6 +78,7 @@ GridMoviesAdapter.GridItemViewListener{
     static boolean loading = true;
 
     private final String ITEM_POSITION = "position";
+    private int mScrollPosition;
 
 
     // it checks whether there is an internet connection, now my app doesn't crash when there is no internet connection.
@@ -102,11 +103,17 @@ GridMoviesAdapter.GridItemViewListener{
 
         initializeViews();
 
+
+
+
         if(savedInstanceState!=null ){
 
             ((GridMoviesAdapter)recyclerView.getAdapter()).swapData(pop_movies);
 
-            restoreLayoutManagerPosition();
+            getSupportLoaderManager().initLoader(MOVIE_LOADER_ID, null, this);
+
+            mScrollPosition = savedInstanceState.getInt(ITEM_POSITION);
+            Log.d("position", Integer.toString(mScrollPosition));
 
             setRecyclerViewOnScrollListener((GridLayoutManager)recyclerView.getLayoutManager());
 
@@ -119,7 +126,7 @@ GridMoviesAdapter.GridItemViewListener{
                 setRecyclerViewOnScrollListener((GridLayoutManager)recyclerView.getLayoutManager());
 
 
-                getSupportLoaderManager().initLoader(MOVIE_LOADER_ID, null, this);
+
 
                 getFirstPage();
 
@@ -131,30 +138,25 @@ GridMoviesAdapter.GridItemViewListener{
 
     }
 
-    private void restoreLayoutManagerPosition() {
-        if (layoutManagerSavedState != null) {
-            ((GridLayoutManager)recyclerView.getLayoutManager()).onRestoreInstanceState(layoutManagerSavedState);
-        }
-    }
+
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putParcelable(SAVED_LAYOUT_MANAGER, ((GridLayoutManager)recyclerView.getLayoutManager()).onSaveInstanceState());
+        outState.putInt(ITEM_POSITION,
+                ((GridLayoutManager)recyclerView.getLayoutManager()).
+                        findFirstVisibleItemPosition());
 
     }
 
     @Override
-    protected void onRestoreInstanceState(Bundle state) {
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        if(savedInstanceState!= null){
 
-        if(state != null){
-            layoutManagerSavedState = state.getParcelable(SAVED_LAYOUT_MANAGER);
+            mScrollPosition = savedInstanceState.getInt(ITEM_POSITION);
         }
-
-
-        super.onRestoreInstanceState(state);
     }
-
 
     //sets onScrollListener to recyclerView given the manager
     private void setRecyclerViewOnScrollListener(final GridLayoutManager manager){
@@ -385,9 +387,13 @@ GridMoviesAdapter.GridItemViewListener{
             pop_movies.addAll(movieList);
             ((GridMoviesAdapter)recyclerView.getAdapter()).swapData(pop_movies);
 
-            loading = true;
+        }
+        if(mScrollPosition != 0){
+            recyclerView.scrollToPosition(mScrollPosition);
+            Log.d("position", Integer.toString(mScrollPosition));
         }
 
+        loading = true;
 
         }
 
