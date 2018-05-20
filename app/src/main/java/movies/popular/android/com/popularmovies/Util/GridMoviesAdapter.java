@@ -83,7 +83,7 @@ public class GridMoviesAdapter extends RecyclerView.Adapter<GridMoviesAdapter.Mo
         int width, height;
         if (dm.heightPixels > dm.widthPixels){
             width = dm.widthPixels / 2;
-            height = height =( 3 * width )/2;
+            height =( 3 * width )/2;
         }else{
             width = dm.widthPixels / 3 ;
             height =( 3 * width )/2;
@@ -95,7 +95,11 @@ public class GridMoviesAdapter extends RecyclerView.Adapter<GridMoviesAdapter.Mo
 
     }
 
-
+    public void swapData(List<Movie> movieList){
+        movies.clear();
+        movies.addAll(movieList);
+        notifyDataSetChanged();
+    }
     @Override
     public int getItemCount() {
         if(movies == null)

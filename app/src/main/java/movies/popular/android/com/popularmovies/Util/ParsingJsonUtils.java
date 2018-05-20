@@ -194,22 +194,27 @@ public class ParsingJsonUtils {
         }
 
 
-        for (int i = 0; i < movies.length(); i++) {
+        if(movies!= null){
 
-            Movie movie = new Movie();
-            JSONObject movieJson = null;
-            try {
-                movieJson = movies.getJSONObject(i);
-                movie.setPoster_path(movieJson.getString(Utils.MOVIE_POSTER));
-                movie.setTitle(movieJson.getString(Utils.TITLE));
-                movie.setOverview(movieJson.getString(Utils.OVERVIEW));
-                movie.setRelease_date(movieJson.getString(Utils.RELEASE_DATE));
-                movie.setId(movieJson.getInt(Utils.ID));
-                movie.setVote_average(movieJson.getDouble(Utils.VOTE_AVER));
-            } catch (JSONException e) {
-                e.printStackTrace();
+            for (int i = 0; i < movies.length(); i++) {
+
+                Movie movie = new Movie();
+                JSONObject movieJson = null;
+                try {
+                    movieJson = movies.getJSONObject(i);
+                    movie.setPoster_path(movieJson.getString(Utils.MOVIE_POSTER));
+                    movie.setTitle(movieJson.getString(Utils.TITLE));
+                    movie.setOverview(movieJson.getString(Utils.OVERVIEW));
+                    movie.setRelease_date(movieJson.getString(Utils.RELEASE_DATE));
+                    movie.setId(movieJson.getInt(Utils.ID));
+                    movie.setVote_average(movieJson.getDouble(Utils.VOTE_AVER));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                movieList.add(movie);
+
             }
-            movieList.add(movie);
+
 
         }
 

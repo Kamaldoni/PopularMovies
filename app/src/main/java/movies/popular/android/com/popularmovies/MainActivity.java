@@ -72,8 +72,11 @@ GridMoviesAdapter.GridItemViewListener{
     private TextView errorMessage;
     private RecyclerView recyclerView;
     private static final int MOVIE_LOADER_ID =  22;
-    private GridMoviesAdapter adapter;
-    private  GridLayoutManager manager;
+
+    static boolean loading = true;
+
+    private final String ITEM_POSITION = "position";
+
     // it checks whether there is an internet connection, now my app doesn't crash when there is no internet connection.
     // it is been taken from https://stackoverflow.com/questions/37232927/app-crashes-when-no-internet-connection-is-available
 
@@ -95,32 +98,72 @@ GridMoviesAdapter.GridItemViewListener{
         setContentView(R.layout.activity_main);
 
         initializeViews();
-
-        if(!internet_connection()){
-            showErrorMessage();
+        if(savedInstanceState!=null && savedInstanceState.containsKey(ITEM_POSITION)){
+            setRecyclerViewOnScrollListener((GridLayoutManager)recyclerView.getLayoutManager());
+            ((GridMoviesAdapter)recyclerView.getAdapter()).swapData(pop_movies);
+            if(savedInstanceState.getInt(ITEM_POSITION) < pop_movies.size()){
+                recyclerView.scrollToPosition(savedInstanceState.getInt(ITEM_POSITION));
+            }
+            Log.d("item position",
+                    Integer.toString(savedInstanceState.getInt(ITEM_POSITION)));
         }else{
+            if(!internet_connection()){
+                showErrorMessage();
+            }else{
 
-            setRecyclerViewOnScrollListener(manager);
+                setRecyclerViewOnScrollListener((GridLayoutManager)recyclerView.getLayoutManager());
 
-            getFirstPage();
 
-            getSupportLoaderManager().initLoader(MOVIE_LOADER_ID, null, this);
+                getSupportLoaderManager().initLoader(MOVIE_LOADER_ID, null, this);
 
+                getFirstPage();
+
+                Log.d("page onCreate", Integer.toString(current_page));
+                Log.d("movies onCreate", Integer.toString(pop_movies.size()));
+            }
         }
 
 
+
+
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.d("page onPause", Integer.toString(current_page));
+        Log.d("movies onPause", Integer.toString(pop_movies.size()));
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(ITEM_POSITION, ((GridLayoutManager)recyclerView.
+                getLayoutManager()).findFirstVisibleItemPosition());
+        Log.d("page onSave", Integer.toString(current_page));
+        Log.d("movies onSave", Integer.toString(pop_movies.size()));
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        Log.d("page onRestore", Integer.toString(current_page));
+        Log.d("movies onRestore", Integer.toString(pop_movies.size()));
 
     }
 
     //sets onScrollListener to recyclerView given the manager
     private void setRecyclerViewOnScrollListener(final GridLayoutManager manager){
 
+
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             // will not be implemented
+
             @Override
             public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
                 super.onScrollStateChanged(recyclerView, newState);
             }
+
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
@@ -128,10 +171,14 @@ GridMoviesAdapter.GridItemViewListener{
                 int lastItemPosition = manager.findLastVisibleItemPosition();
                 int totalItemCount = manager.getItemCount();
 
-                if(dy > 0){
-                    if(lastItemPosition + 1 >= totalItemCount ){
-                        requestForMovies();
+                if (loading){
+                    if(dy > 0){
+                        if(lastItemPosition + 3 >= totalItemCount ){
+                            requestForMovies();
+
+                        }
                     }
+
                 }
             }
         });
@@ -147,19 +194,30 @@ GridMoviesAdapter.GridItemViewListener{
         DisplayMetrics dm = getResources().getDisplayMetrics();
         //gridLayout shows 3 columns in landscape mode
         //and 2 columns in portrait mode
-        manager = new GridLayoutManager(this, 2);
-        if (dm.heightPixels < dm.widthPixels){
-            manager = new GridLayoutManager(this, 3);
-        }
+
+        GridLayoutManager manager = new GridLayoutManager(this, numberOfColumns());
+
 
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(manager);
+        List<Movie> movies = new ArrayList<>();
 
-        adapter = new GridMoviesAdapter( this, pop_movies,this);
+        movies.addAll(pop_movies);
+
+        GridMoviesAdapter adapter = new GridMoviesAdapter( this, movies,this);
         recyclerView.setAdapter(adapter);
 
     }
-
+    private int numberOfColumns() {
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        // You can change this divider to adjust the size of the poster
+        int widthDivider = 600;
+        int width = displayMetrics.widthPixels;
+        int nColumns = width / widthDivider;
+        if (nColumns < 2) return 2; //to keep the grid aspect
+        return nColumns;
+    }
 
     //shows error message when there is no internet connection
     private void showErrorMessage() {
@@ -205,7 +263,7 @@ GridMoviesAdapter.GridItemViewListener{
     private void requestForMovies() {
         if (internet_connection())
         {
-            current_page += 1;
+            current_page ++;
             LoaderManager manager = getSupportLoaderManager();
             Loader<List<Movie>> loader = manager.getLoader(MOVIE_LOADER_ID);
             if(loader == null){
@@ -273,7 +331,7 @@ GridMoviesAdapter.GridItemViewListener{
             @Override
             protected void onStartLoading() {
                 super.onStartLoading();
-
+                loading = false;
                 if(movieList != null)
                     deliverResult(movieList);
                 else{
@@ -296,7 +354,7 @@ GridMoviesAdapter.GridItemViewListener{
 
                 URL url = null;
                 try {
-                    url = NetworkUtils.buildMoviesUrl(sorting);
+                    url = NetworkUtils.buildMoviesUrl(sorting, current_page);
                 } catch (MalformedURLException e) {
                     e.printStackTrace();
                 }
@@ -321,8 +379,9 @@ GridMoviesAdapter.GridItemViewListener{
             showData();
 
             pop_movies.addAll(movieList);
+            ((GridMoviesAdapter)recyclerView.getAdapter()).swapData(pop_movies);
 
-            adapter.notifyDataSetChanged();
+            loading = true;
         }
 
 

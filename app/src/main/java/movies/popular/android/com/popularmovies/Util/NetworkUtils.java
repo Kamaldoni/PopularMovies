@@ -18,7 +18,6 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-import static movies.popular.android.com.popularmovies.MainActivity.current_page;
 import static movies.popular.android.com.popularmovies.Util.Utils.API_KEY;
 
 public class NetworkUtils {
@@ -38,7 +37,7 @@ public class NetworkUtils {
     * These Urls will be used when parsing the json from http(API)*/
 
 
-    public static URL buildMoviesUrl(String sortType) throws MalformedURLException {
+    public static URL buildMoviesUrl(String sortType, int page ) throws MalformedURLException {
 
         Uri.Builder builder = new Uri.Builder();
 
@@ -48,7 +47,7 @@ public class NetworkUtils {
                 .appendPath("movie")
                 .appendPath(sortType)
                 .appendQueryParameter(LANGUAGE, "en_US")
-                .appendQueryParameter(PAGE, Integer.toString(current_page))
+                .appendQueryParameter(PAGE, Integer.toString(page))
                 .appendQueryParameter(API , API_KEY);
 
         URL url = new URL(builder.build().toString());

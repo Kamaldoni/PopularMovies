@@ -219,6 +219,7 @@ public class MovieDetails extends AppCompatActivity implements
         {
             MainActivity.current_page = 1;
             MainActivity.sorting = POPULAR;
+            MainActivity.pop_movies.clear();
             Intent intent = new Intent(MovieDetails.this, MainActivity.class);
             startActivity(intent);
             return  true;
@@ -227,6 +228,7 @@ public class MovieDetails extends AppCompatActivity implements
         {
             MainActivity.current_page = 1;
             MainActivity.sorting = TOP_RATED;
+            MainActivity.pop_movies.clear();
             Intent intent = new Intent(MovieDetails.this, MainActivity.class);
             startActivity(intent);
             return  true;
@@ -309,6 +311,8 @@ public class MovieDetails extends AppCompatActivity implements
             trailers.setAdapter(
                     new TrailersRecyclerViewAdapter(
                             this, videoKeys.size(), this));
+
+            youTubePlayer.cueVideo(videoKeys.get(0));
         }
     }
 
