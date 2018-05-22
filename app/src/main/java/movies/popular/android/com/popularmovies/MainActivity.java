@@ -61,7 +61,8 @@ GridMoviesAdapter.GridItemViewListener{
 
     //holds current page in movieList
     public static int current_page = 1;
-    //holds the List of movies to be linked to recyclerViewAdapter
+
+
     public static List<Movie> pop_movies = new ArrayList<>();
     //const to be used when the user changes the types of movies
     final static String POPULAR = "popular";
@@ -75,12 +76,10 @@ GridMoviesAdapter.GridItemViewListener{
     private RecyclerView recyclerView;
     private static final int MOVIE_LOADER_ID =  22;
 
-    static boolean loading = true;
-
+    public static boolean loading = true;
+    private GridMoviesAdapter adapter;
     private final String ITEM_POSITION = "position";
     private int mScrollPosition;
-
-
     // it checks whether there is an internet connection, now my app doesn't crash when there is no internet connection.
     // it is been taken from https://stackoverflow.com/questions/37232927/app-crashes-when-no-internet-connection-is-available
 
@@ -97,69 +96,33 @@ GridMoviesAdapter.GridItemViewListener{
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
 
         initializeViews();
 
+        if(internet_connection()){
+            if(savedInstanceState != null){
+                mScrollPosition  = savedInstanceState.getInt(ITEM_POSITION);
+            }
 
 
+            getSupportLoaderManager().initLoader(MOVIE_LOADER_ID, null , this);
 
-        if(savedInstanceState!=null ){
 
-            ((GridMoviesAdapter)recyclerView.getAdapter()).swapData(pop_movies);
-
-            getSupportLoaderManager().initLoader(MOVIE_LOADER_ID, null, this);
-
-            mScrollPosition = savedInstanceState.getInt(ITEM_POSITION);
-            Log.d("position", Integer.toString(mScrollPosition));
-
-            setRecyclerViewOnScrollListener((GridLayoutManager)recyclerView.getLayoutManager());
+            setRecyclerViewOnScrollListener();
 
         }else{
-
-            if(!internet_connection()){
-                showErrorMessage();
-            }else{
-
-                setRecyclerViewOnScrollListener((GridLayoutManager)recyclerView.getLayoutManager());
-
-
-
-
-                getFirstPage();
-
-                Log.d("page onCreate", Integer.toString(current_page));
-                Log.d("movies onCreate", Integer.toString(pop_movies.size()));
-            }
+            showErrorMessage();
         }
 
-
     }
 
 
 
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putInt(ITEM_POSITION,
-                ((GridLayoutManager)recyclerView.getLayoutManager()).
-                        findFirstVisibleItemPosition());
-
-    }
-
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        if(savedInstanceState!= null){
-
-            mScrollPosition = savedInstanceState.getInt(ITEM_POSITION);
-        }
-    }
-
-    //sets onScrollListener to recyclerView given the manager
-    private void setRecyclerViewOnScrollListener(final GridLayoutManager manager){
+    private void setRecyclerViewOnScrollListener(){
 
 
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
@@ -174,15 +137,22 @@ GridMoviesAdapter.GridItemViewListener{
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
                 // last item position
-                int lastItemPosition = manager.findLastVisibleItemPosition();
-                int totalItemCount = manager.getItemCount();
+                int visibleItemCount = ((GridLayoutManager)recyclerView.
+                        getLayoutManager()).getChildCount();
+                int firstVisibleItemPosition = ((GridLayoutManager)recyclerView.
+                        getLayoutManager()).findFirstVisibleItemPosition();
+                int totalItemCount = ((GridLayoutManager)recyclerView.
+                        getLayoutManager()).getItemCount();
 
-                if (loading){
+                Log.d("itemPosition", Integer.toString(visibleItemCount+ firstVisibleItemPosition));
+
+
+                if (loading && visibleItemCount + firstVisibleItemPosition >= totalItemCount){
                     if(dy > 0){
-                        if(lastItemPosition + 3 >= totalItemCount ){
-                            requestForMovies();
-
-                        }
+                        loading = false;
+                        current_page++;
+                        getSupportLoaderManager()
+                                .restartLoader(MOVIE_LOADER_ID, null, MainActivity.this);
                     }
 
                 }
@@ -193,27 +163,23 @@ GridMoviesAdapter.GridItemViewListener{
     //initializes all views from this activity
 
     private void initializeViews() {
+
         loadingIndicator = findViewById(R.id.loadingIndicator);
         errorMessage = findViewById(R.id.error_message);
         recyclerView = findViewById(R.id.recyclerViewId);
 
-        DisplayMetrics dm = getResources().getDisplayMetrics();
-        //gridLayout shows 3 columns in landscape mode
-        //and 2 columns in portrait mode
-
         GridLayoutManager manager = new GridLayoutManager(this, numberOfColumns());
-
-
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(manager);
+
         List<Movie> movies = new ArrayList<>();
 
-        movies.addAll(pop_movies);
+        adapter = new GridMoviesAdapter( this, movies,this);
 
-        GridMoviesAdapter adapter = new GridMoviesAdapter( this, movies,this);
         recyclerView.setAdapter(adapter);
 
     }
+
     private int numberOfColumns() {
         DisplayMetrics displayMetrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
@@ -233,60 +199,6 @@ GridMoviesAdapter.GridItemViewListener{
 
     }
 
-    // shows data when there is no error
-    private void showData()
-    {
-
-        errorMessage.setVisibility(View.INVISIBLE);
-        recyclerView.setVisibility(View.VISIBLE);
-
-    }
-
-
-    //this method gets the first page from API
-    private void getFirstPage() {
-        if (internet_connection())
-        {
-            pop_movies.clear();
-            current_page = 1;
-
-            // if loader is
-            LoaderManager manager = getSupportLoaderManager();
-            Loader<List<Movie>> loader = manager.getLoader(MOVIE_LOADER_ID);
-            if(loader == null){
-                manager.initLoader(MOVIE_LOADER_ID, null, this);
-            }else{
-                manager.restartLoader(MOVIE_LOADER_ID, null, this);
-            }
-        }
-        else{
-            //shows an error message telling the user there is no internet connection and issuing a chance to reconnect
-            showErrorMessage();
-
-        }
-    }
-
-    private void requestForMovies() {
-        if (internet_connection())
-        {
-            current_page ++;
-            LoaderManager manager = getSupportLoaderManager();
-            Loader<List<Movie>> loader = manager.getLoader(MOVIE_LOADER_ID);
-            if(loader == null){
-                manager.initLoader(MOVIE_LOADER_ID, null, this);
-
-            }else{
-                manager.restartLoader(MOVIE_LOADER_ID, null, this);
-            }
-        }
-        else{
-            showErrorMessage();
-        }
-
-
-    }
-
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -301,17 +213,29 @@ GridMoviesAdapter.GridItemViewListener{
         int id = item.getItemId();
         if (id == R.id.main_popular)
         {
-            current_page = 1;
-            sorting = POPULAR;
-            getFirstPage();
-            return  true;
+            if(sorting.equals(POPULAR)){
+                return true;
+            }else{
+                current_page = 1;
+                sorting = POPULAR;
+                pop_movies.clear();
+                getSupportLoaderManager().restartLoader(MOVIE_LOADER_ID, null, this);
+                return  true;
+            }
+
 
         }else if (id == R.id.main_rating)
         {
-            sorting = TOP_RATED;
-            current_page = 1;
-            getFirstPage();
-            return  true;
+            if(sorting.equals(TOP_RATED)){
+                return true;
+            }else{
+                sorting = TOP_RATED;
+                current_page = 1;
+                pop_movies.clear();
+                getSupportLoaderManager().restartLoader(MOVIE_LOADER_ID, null, this);
+                return  true;
+            }
+
         }else if(id == R.id.fav_menu){
 
             Intent intent= new Intent(this, FavouriteMoviesActivity.class);
@@ -337,10 +261,11 @@ GridMoviesAdapter.GridItemViewListener{
             @Override
             protected void onStartLoading() {
                 super.onStartLoading();
-                loading = false;
-                if(movieList != null)
-                    deliverResult(movieList);
-                else{
+
+                if(movieList!=null) {
+                    deliverResult(new ArrayList<Movie>());
+                }else{
+                    loading = false;
                     loadingIndicator.setVisibility(View.VISIBLE);
                     forceLoad();
                 }
@@ -349,8 +274,8 @@ GridMoviesAdapter.GridItemViewListener{
 
             @Override
             public void deliverResult(@Nullable List<Movie> data) {
-                movieList = data;
                 super.deliverResult(data);
+                movieList = data;
             }
 
             @Override
@@ -358,15 +283,14 @@ GridMoviesAdapter.GridItemViewListener{
 
                 movieList = new ArrayList<>();
 
+
                 URL url = null;
                 try {
                     url = NetworkUtils.buildMoviesUrl(sorting, current_page);
                 } catch (MalformedURLException e) {
                     e.printStackTrace();
                 }
-
                 ParsingJsonUtils.getResponseFromHttpUrl(movieList, url);
-
 
                 return movieList;
             }
@@ -379,28 +303,39 @@ GridMoviesAdapter.GridItemViewListener{
 
         loadingIndicator.setVisibility(View.INVISIBLE);
 
-        if (movieList == null){
-            showErrorMessage();
-        }else{
-            showData();
+        if(movieList != null){
+
 
             pop_movies.addAll(movieList);
-            ((GridMoviesAdapter)recyclerView.getAdapter()).swapData(pop_movies);
 
-        }
-        if(mScrollPosition != 0){
-            recyclerView.scrollToPosition(mScrollPosition);
-            Log.d("position", Integer.toString(mScrollPosition));
+            adapter.swapData(pop_movies);
+
+            if(mScrollPosition != 0){
+                recyclerView.scrollToPosition(mScrollPosition);
+                mScrollPosition = 0;
+            }
+            Log.d("moviess", Integer.toString(pop_movies.size()));
+
+            loading = true;
+
+        }else {
+            showErrorMessage();
         }
 
-        loading = true;
-
-        }
+    }
 
     @Override
     public void onLoaderReset(@NonNull Loader<List<Movie>> loader) {
 
     }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(ITEM_POSITION, ((GridLayoutManager)recyclerView
+                .getLayoutManager()).findFirstVisibleItemPosition());
+    }
+
     // when the movie thumbnail is clicked navigate to MovieDetailsActivity
     @Override
     public void onClickItemListener(int clickedItemIndex) {
@@ -408,4 +343,7 @@ GridMoviesAdapter.GridItemViewListener{
         intent.putExtra("movie", pop_movies.get(clickedItemIndex));
         startActivity(intent);
     }
+
+
+
 }

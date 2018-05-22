@@ -22,6 +22,7 @@ import android.widget.ImageView;
 
 import com.squareup.picasso.Picasso;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import movies.popular.android.com.popularmovies.MainActivity;
@@ -65,41 +66,33 @@ public class GridMoviesAdapter extends RecyclerView.Adapter<GridMoviesAdapter.Mo
     @NonNull
     @Override
     public GridMoviesAdapter.MovieViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        Context context = parent.getContext();
+
+
         int idOfRecyclerView = R.layout.movie_list;
 
-        LayoutInflater inflater = LayoutInflater.from(context);
+        LayoutInflater inflater = LayoutInflater.from(mContext);
 
         View view = inflater.inflate(idOfRecyclerView, parent, false);
 
-        MovieViewHolder  holder = new MovieViewHolder(view);
-
-        return holder;
+        return new MovieViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull MovieViewHolder holder, int position) {
-        DisplayMetrics dm = mContext.getResources().getDisplayMetrics();
-        int width, height;
-        if (dm.heightPixels > dm.widthPixels){
-            width = dm.widthPixels / 2;
-            height =( 3 * width )/2;
-        }else{
-            width = dm.widthPixels / 3 ;
-            height =( 3 * width )/2;
-        }
+
         Movie movie = movies.get(position);
         final String SIZE = "w342//";
         String final_path = Utils.BASE_URL + SIZE + movie.getPoster_path();
-        Picasso.get().load(final_path).centerCrop(77).resize(width, height).into(holder.moviePoster);
+        Picasso.get().load(final_path).fit().into(holder.moviePoster);
 
     }
 
     public void swapData(List<Movie> movieList){
-        movies.clear();
-        movies.addAll(movieList);
+        movies = movieList;
         notifyDataSetChanged();
     }
+
+
     @Override
     public int getItemCount() {
         if(movies == null)

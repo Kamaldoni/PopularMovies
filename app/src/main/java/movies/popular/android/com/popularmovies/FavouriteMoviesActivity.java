@@ -56,6 +56,9 @@ public class FavouriteMoviesActivity extends AppCompatActivity implements
 
     private RecyclerView recyclerView;
     private List<Movie> movies;
+    private GridMoviesAdapter adapter;
+    final static String ITEM_POSITION = "position";
+    private int mScrollPosition;
     private static final int CURSOR_LOADER_ID = 33;
 
     @Override
@@ -64,23 +67,37 @@ public class FavouriteMoviesActivity extends AppCompatActivity implements
         setContentView(R.layout.activity_favourite_movies);
 
         recyclerView = findViewById(R.id.recyclerViewId);
+        adapter = new GridMoviesAdapter(this, new ArrayList<Movie>(), this);
 
+        recyclerView.setAdapter(adapter);
+        if(savedInstanceState!= null){
 
+            mScrollPosition = savedInstanceState.getInt(ITEM_POSITION);
 
-        DisplayMetrics dm = getResources().getDisplayMetrics();
-        GridLayoutManager manager = new GridLayoutManager(this, 2);
-        if (dm.heightPixels < dm.widthPixels){
-            manager = new GridLayoutManager(this, 3);
         }
+
+        GridLayoutManager manager = new GridLayoutManager(this, numberOfColumns());
+
         recyclerView.setLayoutManager(manager);
         getSupportLoaderManager().initLoader(CURSOR_LOADER_ID, null, this);
 
     }
+    private int numberOfColumns() {
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        // You can change this divider to adjust the size of the poster
+        int widthDivider = 600;
+        int width = displayMetrics.widthPixels;
+        int nColumns = width / widthDivider;
+        if (nColumns < 2) return 2; //to keep the grid aspect
+        return nColumns;
+    }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        getSupportLoaderManager().restartLoader(CURSOR_LOADER_ID, null, this);
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(ITEM_POSITION, ((GridLayoutManager)recyclerView
+                .getLayoutManager()).findFirstVisibleItemPosition());
     }
 
     private List<Movie> fromCursorToList(Cursor cursor){
@@ -115,18 +132,10 @@ public class FavouriteMoviesActivity extends AppCompatActivity implements
             @Override
             protected void onStartLoading() {
                 super.onStartLoading();
-                if (cursor == null){
-                    forceLoad();
-                }else{
-                    deliverResult(cursor);
-                }
+                forceLoad();
             }
 
-            @Override
-            public void deliverResult(@Nullable Cursor data) {
-                cursor = data;
-                super.deliverResult(data);
-            }
+
 
             @Nullable
             @Override
@@ -146,7 +155,14 @@ public class FavouriteMoviesActivity extends AppCompatActivity implements
     @Override
     public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor data) {
         movies = fromCursorToList(data);
-        recyclerView.setAdapter(new GridMoviesAdapter( this, movies, this));
+
+        ((GridMoviesAdapter)recyclerView.getAdapter()).swapData(movies);
+
+        if(mScrollPosition!= 0 ){
+
+            recyclerView.scrollToPosition(mScrollPosition);
+            mScrollPosition = 0;
+        }
     }
 
     @Override
@@ -175,6 +191,7 @@ public class FavouriteMoviesActivity extends AppCompatActivity implements
         {
             MainActivity.current_page = 1;
             MainActivity.sorting = POPULAR;
+            MainActivity.pop_movies.clear();
             Intent intent = new Intent(FavouriteMoviesActivity.this, MainActivity.class);
             startActivity(intent);
             return  true;
@@ -183,12 +200,12 @@ public class FavouriteMoviesActivity extends AppCompatActivity implements
         {
             MainActivity.current_page = 1;
             MainActivity.sorting = TOP_RATED;
+            MainActivity.pop_movies.clear();
             Intent intent = new Intent(FavouriteMoviesActivity.this, MainActivity.class);
             startActivity(intent);
             return  true;
         }else if(id == R.id.fav_menu){
 
-            getSupportLoaderManager().restartLoader(CURSOR_LOADER_ID, null, this);
             return true;
         }
         return super.onOptionsItemSelected(item);

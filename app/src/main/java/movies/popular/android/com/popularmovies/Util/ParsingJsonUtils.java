@@ -19,11 +19,6 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-import static movies.popular.android.com.popularmovies.MainActivity.current_page;
-import static movies.popular.android.com.popularmovies.Util.NetworkUtils.API;
-import static movies.popular.android.com.popularmovies.Util.NetworkUtils.AUTHORITY;
-import static movies.popular.android.com.popularmovies.Util.NetworkUtils.LANGUAGE;
-import static movies.popular.android.com.popularmovies.Util.Utils.API_KEY;
 
 public class ParsingJsonUtils {
 

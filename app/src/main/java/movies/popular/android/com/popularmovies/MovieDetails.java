@@ -89,9 +89,13 @@ public class MovieDetails extends AppCompatActivity implements
         bindViews();
 
         checkTheStarButton();
+
+        initializeYoutubePlayer();
+
         if(internet_connection()) {
+
             getSupportLoaderManager().initLoader(REVIEW_LOADER_ID, null, this);
-            initializeYoutubePlayer();
+
         }
 
     }
@@ -254,11 +258,7 @@ public class MovieDetails extends AppCompatActivity implements
             @Override
             protected void onStartLoading() {
                 super.onStartLoading();
-                if(data == null){
-                    forceLoad();
-                }else{
-                    deliverResult(data);
-                }
+                forceLoad();
             }
 
             @Override
@@ -298,21 +298,25 @@ public class MovieDetails extends AppCompatActivity implements
 
     @Override
     public void onLoadFinished(@NonNull Loader<List<String>> loader, List<String> data) {
-        if (data.get(0).equals("")){
-            reviews.setText("No Reviews");
-        } else{
-            reviews.setText(data.get(0));
-        }
-        movieDuration.setText(data.get(1));
-        for (int i = 2; i < data.size(); i++){
-            videoKeys.add(data.get(i));
-        }
-        if(videoKeys != null && videoKeys.size() > 0){
-            trailers.setAdapter(
-                    new TrailersRecyclerViewAdapter(
-                            this, videoKeys.size(), this));
+        if(data!= null){
+            if (data.get(0).equals("")){
+                reviews.setText("No Reviews");
+            } else{
+                reviews.setText(data.get(0));
+            }
+            movieDuration.setText(data.get(1));
+            for (int i = 2; i < data.size(); i++){
+                videoKeys.add(data.get(i));
+            }
+            if(videoKeys != null && videoKeys.size() > 0){
+                trailers.setAdapter(
+                        new TrailersRecyclerViewAdapter(
+                                this, videoKeys.size(), this));
+                if(youTubePlayer!=null)
+                    youTubePlayer.cueVideo(videoKeys.get(0));
+            }
 
-            youTubePlayer.cueVideo(videoKeys.get(0));
+
         }
     }
 
